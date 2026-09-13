@@ -1,0 +1,53 @@
+version: "3"
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin@123
+      POSTGRES_DB: redline
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  web:
+    container_name: redline
+    build:
+      context: ./src
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file: ".env"
+    volumes:
+      - ./src:/usr/src/app/
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    container_name: redline-worker
+    build:
+      context: ./src
+    command: celery --app=redline worker -l INFO
+    env_file: ".env"
+    volumes:
+      - ./src:/usr/src/app/
+    depends_on:
+      - db
+      - redis
+      - web 
+
+volumes:
+  redis_data:
+  postgres_data:
+
