@@ -13,5 +13,6 @@ urlpatterns = [
     ),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/auth/github/', GithubLogin.as_view(), name='github_login'),
-    path('api/', include('projects.urls'))
+    path('api/', include('projects.urls')),
+    path('api/', include('events.urls')),
 ]

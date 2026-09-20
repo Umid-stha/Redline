@@ -80,7 +80,7 @@ class ProjectViewset(viewsets.ViewSet):
         try:
             obj = Project.objects.of_user(request.user).get(pk=pk)
             obj.regenerate_api_key()
-            serializer = ProjectSerializer(data=obj)
+            serializer = ProjectSerializer(obj)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Project.DoesNotExist:
             return Response({'error': "Project doesn't exist."}, status=status.HTTP_404_NOT_FOUND)

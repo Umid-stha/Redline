@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'projects',
+    'events',
 ]
 
 MIDDLEWARE = [
@@ -87,7 +88,7 @@ DATABASES = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'projects.authentication.APIKeyAuthentication'
+        # 'projects.authentication.APIKeyAuthentication'
     )
 }
 
