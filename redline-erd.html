@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redline — Database Schema</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f1117;
+    color: #c2c0b6;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  header {
+    max-width: 960px;
+    margin: 0 auto 40px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #1e1f2a;
+    border: 1px solid #2a2b38;
+    color: #7c7cad;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #e8e6de;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #6b6a63;
+  }
+
+  .card {
+    max-width: 960px;
+    margin: 0 auto 32px;
+    background: #16171f;
+    border: 1px solid #22232f;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #22232f;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header h2 {
+    font-size: 13px;
+    font-weight: 500;
+    color: #9c9a92;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e8593c;
+    opacity: 0.8;
+  }
+
+  .card-body {
+    padding: 32px 24px;
+  }
+
+  #erd {
+    overflow-x: auto;
+  }
+
+  #erd svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  .models-grid {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .model-card {
+    background: #16171f;
+    border: 1px solid #22232f;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .model-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #22232f;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e6de;
+  }
+
+  .model-app {
+    font-size: 11px;
+    color: #555561;
+    font-family: "SF Mono", "Fira Code", monospace;
+  }
+
+  .model-fields {
+    list-style: none;
+    padding: 12px 0;
+  }
+
+  .model-fields li {
+    padding: 6px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .model-fields li:hover {
+    background: #1c1d28;
+  }
+
+  .field-name {
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: #c2c0b6;
+    font-size: 12px;
+  }
+
+  .field-type {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 11px;
+    color: #555561;
+    white-space: nowrap;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .tag-pk  { background: #2a1f3d; color: #9b7fd4; border: 1px solid #3d2a5e; }
+  .tag-fk  { background: #1a2a3d; color: #5b9bd4; border: 1px solid #1e3a5f; }
+
+  .notes {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .note {
+    background: #16171f;
+    border: 1px solid #22232f;
+    border-left: 3px solid #e8593c;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 18px;
+  }
+
+  .note h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8e6de;
+    margin-bottom: 6px;
+  }
+
+  .note p {
+    font-size: 12px;
+    color: #6b6a63;
+    line-height: 1.6;
+  }
+
+  .note code {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 11px;
+    background: #1e1f2a;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #9b7fd4;
+  }
+
+  .section-label {
+    max-width: 960px;
+    margin: 0 auto 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #444450;
+  }
+
+  .spacer { height: 32px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Portfolio Project</div>
+  <h1>Redline — Database Schema</h1>
+  <p class="subtitle">Error monitoring platform · Django + PostgreSQL</p>
+</header>
+
+<div class="card">
+  <div class="card-header">
+    <div class="dot"></div>
+    <h2>Entity Relationship Diagram</h2>
+  </div>
+  <div class="card-body">
+    <div id="erd"></div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+<div class="section-label">Model breakdown</div>
+
+<div class="models-grid">
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <span class="model-name">User</span>
+      <span class="model-app">accounts</span>
+    </div>
+    <ul class="model-fields">
+      <li><span class="field-name">id <span class="tag tag-pk">PK</span></span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">email</span><span class="field-type">EmailField</span></li>
+      <li><span class="field-name">password</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">created_at</span><span class="field-type">DateTimeField</span></li>
+      <li><span class="field-name">updated_at</span><span class="field-type">DateTimeField</span></li>
+    </ul>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <span class="model-name">Project</span>
+      <span class="model-app">projects</span>
+    </div>
+    <ul class="model-fields">
+      <li><span class="field-name">id <span class="tag tag-pk">PK</span></span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">owner <span class="tag tag-fk">FK</span></span><span class="field-type">→ User</span></li>
+      <li><span class="field-name">name</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">api_key</span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">created_at</span><span class="field-type">DateTimeField</span></li>
+      <li><span class="field-name">updated_at</span><span class="field-type">DateTimeField</span></li>
+    </ul>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <span class="model-name">Issue</span>
+      <span class="model-app">events</span>
+    </div>
+    <ul class="model-fields">
+      <li><span class="field-name">id <span class="tag tag-pk">PK</span></span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">project <span class="tag tag-fk">FK</span></span><span class="field-type">→ Project</span></li>
+      <li><span class="field-name">fingerprint</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">status</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">priority</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">occurrences</span><span class="field-type">PositiveIntegerField</span></li>
+      <li><span class="field-name">first_seen</span><span class="field-type">DateTimeField</span></li>
+      <li><span class="field-name">last_seen</span><span class="field-type">DateTimeField</span></li>
+    </ul>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <span class="model-name">Event</span>
+      <span class="model-app">events</span>
+    </div>
+    <ul class="model-fields">
+      <li><span class="field-name">id <span class="tag tag-pk">PK</span></span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">issue <span class="tag tag-fk">FK</span></span><span class="field-type">→ Issue</span></li>
+      <li><span class="field-name">project <span class="tag tag-fk">FK</span></span><span class="field-type">→ Project</span></li>
+      <li><span class="field-name">exception_type</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">message</span><span class="field-type">TextField</span></li>
+      <li><span class="field-name">stack_trace</span><span class="field-type">JSONField</span></li>
+      <li><span class="field-name">environment</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">metadata</span><span class="field-type">JSONField</span></li>
+      <li><span class="field-name">timestamp</span><span class="field-type">DateTimeField</span></li>
+    </ul>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <span class="model-name">Alert</span>
+      <span class="model-app">alerts</span>
+    </div>
+    <ul class="model-fields">
+      <li><span class="field-name">id <span class="tag tag-pk">PK</span></span><span class="field-type">UUIDField</span></li>
+      <li><span class="field-name">project <span class="tag tag-fk">FK</span></span><span class="field-type">→ Project</span></li>
+      <li><span class="field-name">threshold</span><span class="field-type">PositiveIntegerField</span></li>
+      <li><span class="field-name">timeframe_minutes</span><span class="field-type">PositiveIntegerField</span></li>
+      <li><span class="field-name">notification_type</span><span class="field-type">CharField</span></li>
+      <li><span class="field-name">recipient</span><span class="field-type">EmailField</span></li>
+      <li><span class="field-name">last_triggered_at</span><span class="field-type">DateTimeField (null)</span></li>
+      <li><span class="field-name">created_at</span><span class="field-type">DateTimeField</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="spacer"></div>
+<div class="section-label">Design notes</div>
+
+<div class="notes">
+  <div class="note">
+    <h3>Event has two FKs</h3>
+    <p><code>project_id</code> is denormalized on Event intentionally. Without it, querying all events for a project requires joining through Issue every time — an extra join on a high-volume table.</p>
+  </div>
+  <div class="note">
+    <h3>first_seen vs last_seen</h3>
+    <p><code>first_seen</code> is set once on Issue creation and never updated. <code>last_seen</code> is updated every time a new Event arrives with the same fingerprint.</p>
+  </div>
+  <div class="note">
+    <h3>last_triggered_at is nullable</h3>
+    <p>Starts as <code>NULL</code> — meaning the alert has never fired. The Celery Beat checker treats <code>NULL</code> as always eligible. Set to <code>now()</code> after firing to enforce the cooldown window.</p>
+  </div>
+  <div class="note">
+    <h3>occurrences uses F() expressions</h3>
+    <p>Increment with <code>F('occurrences') + 1</code> not <code>issue.occurrences += 1</code> — avoids race conditions when multiple Celery workers process events simultaneously.</p>
+  </div>
+  <div class="note">
+    <h3>api_key auto-generated</h3>
+    <p>Generated via <code>uuid.uuid4()</code> on <code>Project.save()</code> if not already set. Never exposed in list endpoints — only shown once on project creation.</p>
+  </div>
+  <div class="note">
+    <h3>fingerprint unique per project</h3>
+    <p>The unique constraint is on <code>(project, fingerprint)</code> together — not just <code>fingerprint</code> alone. Same error in two different projects should create two separate Issues.</p>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  themeVariables: {
+    darkMode: true,
+    fontSize: '13px',
+    lineColor: '#3a3b4a',
+    textColor: '#c2c0b6',
+    primaryColor: '#1e1f2e',
+    primaryBorderColor: '#2e2f3e',
+    attributeBackgroundColorEven: '#191a26',
+    attributeBackgroundColorOdd: '#1c1d2a',
+  },
+});
+const { svg } = await mermaid.render('erd-svg', `erDiagram
+  User ||--o{ Project : owns
+  Project ||--o{ Issue : has
+  Project ||--o{ Event : has
+  Project ||--o{ Alert : has
+  Issue ||--o{ Event : groups
+
+  User {
+    uuid id PK
+    string email
+    string password
+    datetime created_at
+    datetime updated_at
+  }
+  Project {
+    uuid id PK
+    uuid owner_id FK
+    string name
+    uuid api_key
+    datetime created_at
+    datetime updated_at
+  }
+  Issue {
+    uuid id PK
+    uuid project_id FK
+    string fingerprint
+    string status
+    string priority
+    int occurrences
+    datetime first_seen
+    datetime last_seen
+  }
+  Event {
+    uuid id PK
+    uuid issue_id FK
+    uuid project_id FK
+    string exception_type
+    string message
+    json stack_trace
+    string environment
+    json metadata
+    datetime timestamp
+  }
+  Alert {
+    uuid id PK
+    uuid project_id FK
+    int threshold
+    int timeframe_minutes
+    string notification_type
+    string recipient
+    datetime last_triggered_at
+    datetime created_at
+  }
+`);
+document.getElementById('erd').innerHTML = svg;
+
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
+</body>
+</html>

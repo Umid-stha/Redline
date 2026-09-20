@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter 
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
+from django.conf import settings
 
-# Create your views here.
+APPLICATION_CALLBACK_URL = settings.APPLICATION_CALLBACK_URL
+
+class GithubLogin(SocialLoginView):
+    adapter_class = GitHubOAuth2Adapter 
+    callback_url = APPLICATION_CALLBACK_URL
+    client_class = OAuth2Client

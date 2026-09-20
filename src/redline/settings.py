@@ -10,6 +10,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 DEBUG = os.getenv('DJANGO_DEBUG', 'false').lower() in ('true', '1', 'yes') 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", '').split(",")
 
+AUTH_USER_MODEL = "accounts.User"
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,17 +23,31 @@ INSTALLED_APPS = [
     # third party
     'rest_framework',
     'django_celery_results',
-    'django_celery_beat'
+    'django_celery_beat',
+    'rest_framework.authtoken',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    'accounts',
+    'projects',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'redline.urls'
@@ -39,7 +55,9 @@ ROOT_URLCONF = 'redline.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'templates'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,6 +83,63 @@ DATABASES = {
     }
 }
 
+# rest framework configurations
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'projects.authentication.APIKeyAuthentication'
+    )
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    """
+        Changed access token time to 60 minutes change to lower after debug is complete.
+    """
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+}
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'access-token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_SECURE': False,  # Set True in production
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'JWT_AUTH_RETURN_EXPIRATION': True,
+    'SESSION_LOGIN': False,
+}
+
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+LOGIN_URL = os.getenv("FRONTEND_LOGIN_URL", 'http://localhost:3000/login')
+
+# Provider specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "VERIFIED_EMAIL": True 
+    }
+}
+
+#CORS Config
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(',')
+CORS_TRUSTED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(',')
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+APPLICATION_CALLBACK_URL = os.getenv("APPLICATION_CALLBACK_URL")
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -102,15 +177,26 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+#email config
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST=os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT=os.getenv("EMAIL_PORT", "587")
+EMAIL_USE_TLS=os.getenv("EMAIL_USE_TLS", "true").lower() in ('true', '1', 'yes') 
+EMAIL_USE_SSL=os.getenv("EMAIL_USE_SSL", "false").lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER=os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD=os.getenv("EMAIL_HOST_PASSWORD")
 
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+ADMIN_USER_NAME = os.getenv("ADMIN_USER_NAME")
+ADMIN_USER_MAIL = os.getenv("ADMIN_USER_MAIL")
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+ADMINS=[]
+MANAGERS=[]
+
+if all([ADMIN_USER_NAME, ADMIN_USER_MAIL]):
+    ADMINS += [
+        (f'{ADMIN_USER_NAME}', f'{ADMIN_USER_MAIL}')
+    ]
+    MANAGERS = ADMINS
 
 # Celery configs
 
